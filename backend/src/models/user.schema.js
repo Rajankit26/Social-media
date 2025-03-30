@@ -24,19 +24,19 @@ const userSchema = new mongoose.Schema(
             select : false
         },
         bio : String,
-        profile_picture : [
+        profile_picture : 
             {
                 secure_url :{
                     type : String,
                     required : true,
                 }
             }
-        ],
-        profile_cover :[
+        ,
+        profile_cover :
             {
                 secure_url : String,
             }
-        ],
+        ,
         gender : {
             type : String,
             enum :["Female", "Male", "Others"]
