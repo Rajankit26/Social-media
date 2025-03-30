@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs"
 
 const userSchema = new mongoose.Schema(
     {
-        userName : {
+        username : {
             type : String,
             minLength : [4,'Username should be of at least 4 chars'],
             maxLength : [10,'Username should be less than 10 chars'],
