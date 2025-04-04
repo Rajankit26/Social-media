@@ -2,7 +2,7 @@ import User from "../models/user.schema.js"
 import asyncHandler from "../service/asyncHandler.js"
 import customError from "../service/customError.js"
 import { generateJWT } from "../utils/jwt.js"
-import { cookieOptions } from "../service/cookieOptions.js"
+import cookieOptions  from "../service/cookieOptions.js"
 import { comparePassword } from "../utils/compare.password.js"
 
 export const signup = asyncHandler(async(req, res) => {
@@ -53,7 +53,7 @@ export const login = asyncHandler(async(req, res) => {
     }
 
     const token = generateJWT({_id : user._id})
-    userExists.password = undefined;
+    user.password = undefined;
     res.cookie('token', token, cookieOptions)
 
     res.status(200).json({
@@ -65,7 +65,7 @@ export const login = asyncHandler(async(req, res) => {
 })
 
 export const logout = asyncHandler(async(req, res) =>{
-    res.cookie('token', null, {
+    res.cookie('token', "", {
         expires : new Date(Date.now()),
         httpOnly : true
     })

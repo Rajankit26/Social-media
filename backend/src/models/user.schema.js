@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
             {
                 secure_url :{
                     type : String,
-                    required : true,
+                    // required : true,
                 }
             }
         ,

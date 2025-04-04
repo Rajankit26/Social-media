@@ -11,7 +11,7 @@ export const generateJWT = (payload) =>{
 
 export const verifyJWT = (token) =>{
     try {
-        return JWT.sign(token, process.env.JWT_SECRET)
+        return JWT.verify(token, process.env.JWT_SECRET)
     } catch (error) {
         console.error(`Invalid token : ${error}`)
         return null;
