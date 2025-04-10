@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import Post from '../models/post.schema.js'
 import asyncHandler from '../service/asyncHandler.js'
 import customError from '../service/customError.js'
@@ -20,7 +21,7 @@ export const createPost = asyncHandler(async(req, res) => {
 
 export const updatePost = asyncHandler(async(req, res) => {
     const { content } = req.body
-    const postId = req.params
+    const {postId} = req.params
     const userId = req.user._id
 
     if(!mongoose.Types.ObjectId.isValid(postId)){
@@ -35,7 +36,7 @@ export const updatePost = asyncHandler(async(req, res) => {
         throw new customError('You can only update your own post,unauthorized access!', 400);
     }
 
-    if(!content && !Array.isArray(content)){
+    if(!content || !Array.isArray(content)){
         throw new customError('Content should be an array',400)
     }
 
@@ -53,7 +54,7 @@ export const updatePost = asyncHandler(async(req, res) => {
 
 // get posts by a specific user
 export const getUserPost = asyncHandler(async(req, res) => {
-    const userId  = req.user._id || req.params.userIdx
+    const userId  = req.user._id 
 
     const post = await Post.find({userId})
     if(!post || post.length === 0){

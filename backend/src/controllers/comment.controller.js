@@ -22,7 +22,9 @@ export const addComment = asyncHandler(async(req, res) =>{
         throw new customError("Comment text can't be empty", 400)
     }
     const comments = await Comment.create({
-        userId, postId, commentText : commentText.trim()
+        userId,
+        postId, 
+        content : commentText.trim()
     })
 
     res.status(200).json({
@@ -82,12 +84,12 @@ export const getComment = asyncHandler(async(req, res) =>{
 })
 
 export const editComment = asyncHandler(async(req, res) =>{
-    const {postId} = req.params
+    const {postId, commentId} = req.params
     const {commentText} = req.body
     const userId = req.user._id
 
-    if(!mongoose.Types.ObjectId.isValid(postId)){
-        throw new customError('Invalid postId', 400)
+    if(!mongoose.Types.ObjectId.isValid(postId) || !mongoose.Types.ObjectId.isValid(commentId)){
+        throw new customError('Invalid postId or commentId', 400)
     }
 
     const post = await Post.findById(postId)
@@ -98,7 +100,10 @@ export const editComment = asyncHandler(async(req, res) =>{
     if(!commentText){
         throw new customError('Comment text is required to update the comment', 400)
     }
-    const editedComment = await Comment.findOneAndUpdate({userId, postId}, {commentText}, {new : true, runValidators : true})
+    const editedComment = await Comment.findOneAndUpdate(
+        {_id : commentId, userId, postId}, 
+        {content : commentText.trim()}, 
+        {new : true, runValidators : true})
 
     if(!editedComment){
         throw new customError('Comment not found or not authorised', 400)

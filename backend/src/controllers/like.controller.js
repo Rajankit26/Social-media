@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import Like from '../models/like.schema.js'
 import Post from '../models/post.schema.js'
 import asyncHandler from '../service/asyncHandler.js'
