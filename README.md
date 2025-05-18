@@ -1,3 +1,4 @@
+
 # 🚀 Social Media Backend App
 
 A full-featured and scalable backend server for a social media application, built using **Node.js**, **Express**, and **MongoDB**. This backend supports user authentication, posts, likes, comments, follows, and profile management — with media uploads (images, videos, documents) via **Cloudinary**.
@@ -102,3 +103,4 @@ Bearer <your_token>
 
 ### 🧪 Testing
 Use Postman to test all endpoints. Make sure to attach JWT token to secured routes.
+
