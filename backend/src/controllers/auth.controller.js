@@ -107,6 +107,24 @@ export const updateProfile = asyncHandler(async(req, res) => {
     if(bio){
         updatedFields.bio = bio
     }
+
+    // Check if files were uploaded by multer 
+    if(req.files){
+
+        // req.files.profile_picture is an array of files
+        if(req.files.profile_picture){
+            updatedFields.profile_picture = {
+                secure_url : req.files.profile_picture[0].path
+            };
+        }
+
+        if(req.files.profile_cover){
+            updatedFields.profile_cover = {
+                secure_url : req.files.profile_cover[0].path
+            }
+        }
+    }
+
     const updatedProfile = await User.findByIdAndUpdate(userId, updatedFields, { new: true, runValidators: true }).select('-password')
     res.status(200).json({
         success : true,

@@ -26,15 +26,13 @@ const userSchema = new mongoose.Schema(
         bio : String,
         profile_picture : 
             {
-                secure_url :{
-                    type : String,
-                    // required : true,
-                }
-            }
-        ,
+                secure_url : String,
+                public_id : String  //Cloudinary's unique file identifier
+             },
         profile_cover :
             {
                 secure_url : String,
+                public_id : String
             }
         ,
         gender : {
