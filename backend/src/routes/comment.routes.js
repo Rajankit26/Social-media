@@ -7,6 +7,6 @@ const router = Router()
 router.post('/:postId', verifyToken, upload.array('files', 3), addComment)
 router.get('/:postId', getAllComments)
 router.get('/:postId', verifyToken, getComment)
-router.patch('/:postId/update/:commentId', verifyToken, editComment)
+router.patch('/:postId/update/:commentId', verifyToken,upload.array('files', 3), editComment)
 router.delete('/delete/:commentId', verifyToken, deleteComment)
 export default router
