@@ -14,11 +14,14 @@ const commentSchema = new mongoose.Schema(
             required : true,
             index : true
         },
-        content : {
-            type : String,
-            required : true,
-            trim : true
-        }
+        content : [
+            {
+                type : {type : String, enum : ['text', 'image', 'gif','video'], required : true},
+                url : String,
+                public_id : String,
+                text : String
+            }
+        ]
     },
     {
         timestamps : true
