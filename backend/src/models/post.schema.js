@@ -15,12 +15,9 @@ const postSchema = new mongoose.Schema(
                     enum : ['text', 'image', 'video', 'document'],
                     required : true
                 },
-                url :{
-                    type :  String
-                },
-                text : {
-                    type :  String
-                }
+                url : String,
+                public_id : String,
+                text : String
             }
         ]
     },
