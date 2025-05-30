@@ -24,6 +24,7 @@ const userSchema = new mongoose.Schema(
             select : false
         },
         bio : String,
+        refresh_token : String,
         profile_picture : 
             {
                 secure_url : String,
@@ -41,6 +42,7 @@ const userSchema = new mongoose.Schema(
         }
 
     },
+
     {timestamps : true}
 )
 

@@ -3,17 +3,23 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-export const generateJWT = (payload) =>{
-    return JWT.sign(payload,process.env.JWT_SECRET,{
-       expiresIn : process.env.JWT_EXPIRY
+export const generateAccessToken = (payload) =>{
+    return JWT.sign(payload,process.env.ACCESS_TOKEN_SECRET,{
+       expiresIn : process.env.ACCESS_TOKEN_EXPIRES_IN || "10min"
     })
 }
 
-export const verifyJWT = (token) =>{
+export const generateRefreshToken = (payload) =>{
+    return JWT.sign(payload,process.env.REFRESH_TOKEN_SECRET,{
+       expiresIn : process.env.REFRESH_TOKEN_EXPIRES_IN || "7d"
+    })
+}
+
+export const verifyJWT = (token, secretKey) =>{
     try {
-        return JWT.verify(token, process.env.JWT_SECRET)
+        return JWT.verify(token, secretKey)
     } catch (error) {
-        console.error(`Invalid token : ${error}`)
+        console.error(`JWT verification failed : ${error.name} - ${error.message}`)
         return null;
     }
 }

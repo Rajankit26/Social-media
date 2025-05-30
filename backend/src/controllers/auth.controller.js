@@ -1,7 +1,7 @@
 import User from "../models/user.schema.js"
 import asyncHandler from "../service/asyncHandler.js"
 import customError from "../service/customError.js"
-import { generateJWT } from "../utils/jwt.js"
+import { generateAccessToken, generateRefreshToken, verifyJWT } from "../utils/jwt.js"
 import cookieOptions  from "../service/cookieOptions.js"
 import { comparePassword } from "../utils/compare.password.js"
 
@@ -21,55 +21,81 @@ export const signup = asyncHandler(async(req, res) => {
         username, email, password
     })
 
-    const token = generateJWT({_id : user._id});
+    const accessToken = generateAccessToken({_id : user._id});
+    const refreshToken = generateRefreshToken({_id : user._id});
+
+    user.refresh_token = refreshToken;
+    await user.save();
 
     // Remove password before sending response.....for safety purpose
     user.password = undefined; 
 
-    res.cookie('token', token, cookieOptions);
+    res.cookie('refreshToken', refreshToken, cookieOptions);
 
     res.status(201).json({
         success : true,
         message : 'Signup successfull',
+        token : accessToken,
         user,
-        token
     })
 })
 
 export const login = asyncHandler(async(req, res) => {
-    const {email, password} = req.body
-    if(!email || !password){
-        throw new customError('Email and password is required', 400)
+    const {email, username, password} = req.body
+    if(!email && !username){
+        throw new customError('Username or email is required', 400)
     }
 
-    const user = await User.findOne({email}).select('+password');
+    if(!password){
+        throw new customError("Password is required for login", 400)
+    }
+
+    const user = await User.findOne({
+        $or :[{email, username}],
+    }).select('+password');
     
     if(!user){
         throw new customError('User does not exist', 400);
     }
-    const passwordMatched = await comparePassword(password, user.password)
-    if(!passwordMatched){
-        throw new customError('Invalid password', 400)
+    const isPasswordMatched = await comparePassword(password, user.password)
+    if(!isPasswordMatched){
+        throw new customError('Invalid credentials', 400)
     }
 
-    const token = generateJWT({_id : user._id})
+    const accessToken = generateAccessToken({_id : user._id})
+    const refreshToken = generateRefreshToken({_id : user._id})
+
+    // Save refresh token in DB
+    user.refresh_token = refreshToken;
+    await user.save();
+
     user.password = undefined;
-    res.cookie('token', token, cookieOptions)
+    res.cookie('refreshToken', refreshToken, cookieOptions)
 
     res.status(200).json({
         success : true,
         message : 'Login successfull',
-        user,
-        token
+        token : accessToken,
+        userData : user,
     })
 })
 
 export const logout = asyncHandler(async(req, res) =>{
-    res.cookie('token', "", {
-        expires : new Date(Date.now()),
-        httpOnly : true
+
+    // res.clearCookie("refreshToken")
+    res.cookie('refreshToken', "", {
+        httpOnly : true,
+        secure : true,
+        sameSite : "Strict",
+        expires : new Date(Date.now())
     })
 
+    const user = await User.findById(req.user._id)
+
+    if(user){
+        user.refresh_token = null,
+        await user.save()
+    }
     res.status(200).json({
         success : true,
         message : 'Logout successfull'
@@ -130,5 +156,34 @@ export const updateProfile = asyncHandler(async(req, res) => {
         success : true,
         message : 'Profile updated successfully',
         updatedProfile
+    })
+})
+
+export const refreshAccessToken = asyncHandler(async (req, res) =>{
+    const {refreshToken} = req.cookies;
+    
+    if(!refreshToken){
+        throw new customError("No refresh token provided", 401)
+    }
+
+    const payload = verifyJWT(refreshToken, process.env.REFRESH_TOKEN_SECRET)
+
+    const user = await User.findById(payload._id).select("-password");
+
+    if(!user || user.refresh_token !== refreshToken){
+        throw new customError("User not found or token mismatched!", 401);
+    }
+
+    const newRefreshToken = generateRefreshToken({ _id: user._id });
+    user.refresh_token = newRefreshToken;
+    await user.save();
+    res.cookie('refreshToken', newRefreshToken, cookieOptions);
+    
+    const newAccessToken = generateAccessToken({_id : user._id})
+
+    res.status(200).json({
+        success : true,
+        message : "New access token generated",
+        accessToken : newAccessToken
     })
 })
