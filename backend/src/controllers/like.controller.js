@@ -3,8 +3,12 @@ import Like from '../models/like.schema.js'
 import Post from '../models/post.schema.js'
 import asyncHandler from '../service/asyncHandler.js'
 import customError from '../service/customError.js'
+import { createNotification } from '../service/notification.service.js'
+import User from "../models/user.schema.js"
+import Notification from "../models/notification.schema.js"
 
-export const likePost = asyncHandler(async(req, res) =>{
+
+export const likePost = asyncHandler(async(req, res) =>{    
     const {postId} = req.params
     const userId = req.user._id
 
@@ -24,6 +28,19 @@ export const likePost = asyncHandler(async(req, res) =>{
     }
 
     const like = await Like.create({userId, postId});
+    if(post.userId.toString() != userId.toString())
+    {
+        await createNotification(
+           {
+            senderId : userId, 
+            recieverId : post.userId, 
+            postId : post._id,
+            messageContent : `${req.user.username} liked your post`,
+            type : 'like',
+            isRead: false
+        }
+        )
+    }
     res.status(201).json({
         success : true,
         mesaage : 'Post liked successfully',

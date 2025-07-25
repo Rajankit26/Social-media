@@ -4,6 +4,7 @@ import customError from "../service/customError.js"
 import { generateAccessToken, generateRefreshToken, verifyJWT } from "../utils/jwt.js"
 import cookieOptions  from "../service/cookieOptions.js"
 import { comparePassword } from "../utils/compare.password.js"
+import { createNotification } from "../service/notification.service.js"
 
 export const signup = asyncHandler(async(req, res) => {
     const {username, email, password} = req.body
@@ -32,6 +33,14 @@ export const signup = asyncHandler(async(req, res) => {
 
     res.cookie('refreshToken', refreshToken, cookieOptions);
 
+    await createNotification(
+        {
+            senderId: user._id,
+            recieverId: user._id,
+            type: 'signup',
+            messageContent: `Welcome ${user.username}! Your account has been created`
+        }
+    );
     res.status(201).json({
         success : true,
         message : 'Signup successfull',
@@ -72,6 +81,14 @@ export const login = asyncHandler(async(req, res) => {
     user.password = undefined;
     res.cookie('refreshToken', refreshToken, cookieOptions)
 
+    await createNotification(
+        {
+            senderId: user._id,
+            recieverId: user._id,
+            type: 'login',
+            messageContent: `Welcome ${user.username}! Logged in sucessfully`
+        }
+    )
     res.status(200).json({
         success : true,
         message : 'Login successfull',
@@ -96,6 +113,15 @@ export const logout = asyncHandler(async(req, res) =>{
         user.refresh_token = null,
         await user.save()
     }
+
+    await createNotification(
+        {
+            senderId: user._id,
+            recieverId: user._id,
+            type:'logout',
+            messageContent: ` ${user.username}! Logged out`
+        }
+    )
     res.status(200).json({
         success : true,
         message : 'Logout successfull'

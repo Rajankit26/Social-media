@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { verifyToken } from "../middlewares/auth.middleware.js";
+import { verifyAccessToken } from "../middlewares/auth.middleware.js";
 import {followUser, unfollowUser, getFollowers, followersCount} from '../controllers/follow.controller.js'
 
 const router = Router();
-router.post('/:userId1', verifyToken, followUser)
-router.patch('/unfollow/:userId1', verifyToken, unfollowUser)
-router.get('/followers',verifyToken, getFollowers)
-router.get('/followersCount', verifyToken, followersCount)
+router.post('/:userId1', verifyAccessToken, followUser)
+router.patch('/unfollow/:userId1', verifyAccessToken, unfollowUser)
+router.get('/followers',verifyAccessToken, getFollowers)
+router.get('/followersCount', verifyAccessToken, followersCount)
 
 export default router

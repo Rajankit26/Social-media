@@ -6,7 +6,7 @@ import commentRoutes from './routes/comment.routes.js'
 import likeRoutes from './routes/like.routes.js'
 import followRoutes from './routes/follow.routes.js'
 import cookieParser from 'cookie-parser'
-
+import notificationRoutes from './routes/notification.routes.js'
 const app = express()
 
 
@@ -23,4 +23,5 @@ app.use('/api/v1/auth/posts',postRoutes)
 app.use('/api/v1/auth/comments', commentRoutes)
 app.use('/api/v1/auth/likes', likeRoutes)
 app.use('/api/v1/auth/follow', followRoutes)
+app.use('/api/v1/auth/notifications', notificationRoutes);
 export default app;

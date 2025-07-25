@@ -2,6 +2,8 @@ import mongoose from 'mongoose'
 import Follow from '../models/follow.schema.js'
 import asyncHandler from '../service/asyncHandler.js'
 import customError from '../service/customError.js'
+import { createNotification } from '../service/notification.service.js'
+import User from "../models/user.schema.js"
 
 export const followUser = asyncHandler(async(req, res) =>{
     const {userId1} = req.params
@@ -11,10 +13,13 @@ export const followUser = asyncHandler(async(req, res) =>{
         throw new customError('Invalid userId', 400)
     }
 
+    const doesUserExist = await User.findById(userId1);
+    if(!doesUserExist){
+        throw new customError('User does not exist in DB whom you want to follow', 400);
+    }
     if(userId.toString() === userId1.toString()){
         throw new customError('User cannot follow themselves', 400)
     }
-
     const alreadyFollows = await Follow.findOne({followerId : userId, followingId : userId1})
     if(alreadyFollows){
         throw new customError('User already in the following list', 400)
@@ -25,7 +30,15 @@ export const followUser = asyncHandler(async(req, res) =>{
         followerId : userId,
         followingId : userId1
     })
-
+    const follwerId = await User.findById(req.user);
+    await createNotification(
+        {
+            senderId: req.user._id,
+            recieverId: userId1,
+            type: 'follow',
+            messageContent: `${follwerId.username} started following ${userId1.username}`
+        }
+    )
     res.status(200).json({
         success : true,
         message : 'User followed successfully!',

@@ -3,6 +3,9 @@ import Comment from '../models/comment.schema.js'
 import Post from '../models/post.schema.js'
 import asyncHandler from '../service/asyncHandler.js'
 import customError from '../service/customError.js'
+import { createNotification } from '../service/notification.service.js'
+import User from "../models/user.schema.js"
+import Notification from "../models/notification.schema.js"
 
 export const addComment = asyncHandler(async(req, res) =>{
     const {postId} = req.params
@@ -52,6 +55,19 @@ export const addComment = asyncHandler(async(req, res) =>{
         content : commentMedia
     })
 
+    // Make sure req.user has username.If not first fetch the user first
+    const commenter = await User.findById(req.user._id).select("username");
+    await createNotification(
+        {
+            senderId : req.user._id,
+            recieverId: post.userId,
+            type: 'comment',
+            messageContent: `${commenter.username} commented on your post ${post._id}`,
+            postId: post._id,
+            commentId: comments._id,
+            isRead : false,
+        }
+    )
     res.status(200).json({
         success : true,
         message : 'Comment added successfully!',
@@ -75,6 +91,19 @@ export const getAllComments = asyncHandler(async(req, res) =>{
     if(allComments.length === 0){
         throw new customError('Comments not found for this post', 400)
     }
+    
+    // Update notification
+    await Notification.updateMany(
+        {
+            recieverId: req.user._id,
+            postId: post.userId,
+            type: 'comment',
+            isRead: false,
+        },
+        {
+            $set : { isRead: true },
+        }
+    );
     res.status(200).json({
         sucess : true,
         message : 'All comments fetched successfully',
@@ -125,6 +154,9 @@ export const editComment = asyncHandler(async(req, res) =>{
     }
     if(!comment){
         throw new customError('Comment not found', 400)
+    }
+    if(comment.postId.toString() != postId.toString()){
+        throw new customError('comment does not belong to this post');
     }
     if(comment.userId.toString() != userId.toString()){
             throw new customError('You can only update your own comment,unauthorized access!', 400);
@@ -182,6 +214,18 @@ export const editComment = asyncHandler(async(req, res) =>{
 }
     await comment.save()
 
+    const editor = await User.findById(req.user._id);
+    // Send notification to post owner on edit
+    await createNotification(
+        {
+            senderId: req.user._id,
+            recieverId: post.userId,
+            type: 'comment',
+            messageContent: `${editor.username} edited their comment on your post`,
+            commentId: comment._id,
+            postId: post._id,
+        }
+    )
     res.status(200).json({
         success : true,
         message : 'Comment updated successfully',
